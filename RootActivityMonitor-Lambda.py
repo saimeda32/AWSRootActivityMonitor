@@ -46,22 +46,6 @@ def lambda_handler(event, context):
 	snsclient = boto3.client('sns')
 	
 	
-	#### Below needs to be tested ##SAI MEDA
-	
-#	response = client.list_account_aliases()
-#	logger.debug("List Account Alias response --- %s" %response)
-	
-#'''	try:
-#		if not response['AccountAliases']:
-#			accntAliase = (boto3.client('sts').get_caller_identity()['Account'])
-#			logger.info("Account Aliase is not defined. Account ID is %s" %accntAliase)
-#		else:
-#			accntAliase = response['AccountAliases'][0]
-#			logger.info("Account Aliase is : %s" %accntAliase) 
-#	
-#	except ClientError as e:
-#		logger.error("Clien Error occured") '''
-	
 	try: 
 		#Sending the notification...
 		snspublish = snsclient.publish(

@@ -1,0 +1,65 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Root Login Monitor Rule 
+## This needs to be run on member/child accounts
+Parameters:
+
+  CentralEventBusArn:
+    Type: String
+  EventName:
+    Description: Name of the Event Rule 
+    Type: String
+    Default: RootActivityRule
+  EventIAMRoleName:
+    Description: Name of the IAM Role used to publish event to master account 
+    Type: String
+    Default: Event_Access_Role
+
+Resources:
+  EventsRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Events rule for monitoring root API activity
+      EventPattern:
+        detail-type:
+        - AWS API Call via CloudTrail 
+        - AWS Console Sign In via CloudTrail
+        detail:
+          userIdentity:
+            type:
+            - Root
+      Name: !Ref EventName
+      State: ENABLED
+      Targets: 
+        - Arn: !Ref CentralEventBusArn
+          Id: MyEventToAcc2
+          RoleArn: !GetAtt CWEventsRole.Arn
+  CWEventsRole:
+      Type: AWS::IAM::Role
+      Properties: 
+        RoleName: !Ref EventIAMRoleName
+        AssumeRolePolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: [events.amazonaws.com]
+              Action: ["sts:AssumeRole"]
+        Description: Role for CW event to be able to publish events to acc2
+        Policies: 
+          - PolicyName: CrossAccountEventPolicy
+            PolicyDocument: 
+              {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                      {
+                          "Effect": "Allow",
+                          "Action": [
+                              "events:PutEvents"
+                          ],
+                          "Resource": [
+                              !Ref CentralEventBusArn 
+                           ]
+                      }
+                  ]
+              }
